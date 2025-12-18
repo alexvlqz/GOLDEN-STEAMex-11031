@@ -7,6 +7,11 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.sim.SparkMaxSim;
+
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -18,6 +23,14 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
+  // Motores Chassis
+  SparkMax left1 = new SparkMax(1, MotorType.kBrushed);
+  SparkMax left2 = new SparkMax(2, MotorType.kBrushed);
+  SparkMax right1 = new SparkMax(3, MotorType.kBrushed);
+  SparkMax right2 = new SparkMax(4, MotorType.kBrushed);
+
+  
 
   /**
    * This function is run when the robot is first started up and should be used for any
