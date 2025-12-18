@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,6 +12,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.sim.SparkMaxSim;
+import edu.wpi.first.math.system.plant.DCMotor;
 
 
 /**
@@ -30,7 +32,17 @@ public class Robot extends TimedRobot {
   SparkMax right1 = new SparkMax(3, MotorType.kBrushed);
   SparkMax right2 = new SparkMax(4, MotorType.kBrushed);
 
-  
+  // Config Chassis
+  SparkMaxConfig l2Config = new SparkMaxConfig();
+  SparkMaxConfig r1Config = new SparkMaxConfig();
+  SparkMaxConfig r2Config = new SparkMaxConfig();
+
+  // Motores Chassis (Sim)
+  DCMotor leftGearbox = DCMotor.getCIM(2);
+  SparkMaxSim leftSim = new SparkMaxSim(left1, leftGearbox);
+  DCMotor rightGearbox = DCMotor.getCIM(2);
+  SparkMaxSim rightSim = new SparkMaxSim(right1, leftGearbox);
+
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -40,6 +52,17 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    // Spark Configs
+
+    l2Config  // Left slave follows main.
+          .follow(1);
+    r1Config  // Right main inverted.
+          .inverted(true);
+    r2Config  // Right slave follows main.
+          .follow(3);
+
+
   }
 
   /**
@@ -113,5 +136,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    
+
+  }
 }
