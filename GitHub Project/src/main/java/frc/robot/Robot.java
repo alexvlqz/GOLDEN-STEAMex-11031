@@ -5,7 +5,13 @@
 package frc.robot;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -36,12 +42,27 @@ public class Robot extends TimedRobot {
   SparkMaxConfig r1Config = new SparkMaxConfig();
   SparkMaxConfig r2Config = new SparkMaxConfig();
 
-  // Motores Chassis (Sim)
-  DCMotor leftGearbox = DCMotor.getCIM(2);
-  SparkMaxSim leftSim = new SparkMaxSim(left1, leftGearbox);
-  DCMotor rightGearbox = DCMotor.getCIM(2);
-  SparkMaxSim rightSim = new SparkMaxSim(right1, leftGearbox);
+  // Simulación
 
+  DCMotor motor = DCMotor.getCIM(2);
+  double massKg = 60;
+  double rMeters = Units.inchesToMeters(6);
+  double rbMeters = Units.inchesToMeters(16);
+  double JKgMetersSquared = 5.5;
+  double gearing = 8.45;
+  private DifferentialDrivetrainSim ddsim = new DifferentialDrivetrainSim(
+    LinearSystemId.createDrivetrainVelocitySystem(
+            motor,
+            massKg,
+            rMeters,
+            rbMeters,
+            JKgMetersSquared,
+            gearing),
+    motor,
+    gearing,
+    rbMeters,
+    rMeters,
+    null);
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -111,7 +132,9 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    DifferentialDrive differentialDrive = new DifferentialDrive(left1, right1);
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
@@ -136,7 +159,9 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
-    
-
+    ddsim.setInputs(
+      left1.get() * RobotController.getInputVoltage(),
+      -(right1.get() * RobotController.getInputVoltage()));
+    ddsim.update(0.02);
   }
 }
