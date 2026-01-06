@@ -4,26 +4,16 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.wpilibj.simulation.AnalogGyroSim;
-import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.simulation.EncoderSim;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Joystick;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 /**
@@ -44,45 +34,15 @@ public class Robot extends TimedRobot {
   SparkMax right2 = new SparkMax(4, MotorType.kBrushed);
   Encoder leftEncoder = new Encoder(1,2);
   Encoder rightEncoder = new Encoder(3,4);
-  AnalogGyro gyro = new AnalogGyro(1);
 
   // Config Chassis
   SparkMaxConfig l2Config = new SparkMaxConfig();
   SparkMaxConfig r1Config = new SparkMaxConfig();
   SparkMaxConfig r2Config = new SparkMaxConfig();
 
-  // Simulación
-  DCMotor motor = DCMotor.getCIM(2);
-  double massKg = 60;
-  double rMeters = Units.inchesToMeters(6);
-  double rbMeters = Units.inchesToMeters(16);
-  double JKgMetersSquared = 5.5;
-  double gearing = 8.45;
-  DifferentialDrivetrainSim ddsim = new DifferentialDrivetrainSim(
-    LinearSystemId.createDrivetrainVelocitySystem(
-            motor,
-            massKg,
-            rMeters,
-            rbMeters,
-            JKgMetersSquared,
-            gearing),
-    motor,
-    gearing,
-    rbMeters,
-    rMeters,
-    null);
-  EncoderSim leftEncSim = new EncoderSim(leftEncoder);
-  EncoderSim rightEncSim = new EncoderSim(rightEncoder);
-  AnalogGyroSim gyroSim = new AnalogGyroSim(gyro);
-  Field2d field2d = new Field2d();
-
   // Differential Drive
-  private final DifferentialDrive ddDrive = new DifferentialDrive(left1, right1);
-  private Joystick control = new Joystick(0);
-  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(
-    gyro.getRotation2d(),
-    leftEncoder.getDistance(),rightEncoder.getDistance(),
-    new Pose2d(5.0,13.5, new Rotation2d()));
+  DifferentialDrive ddDrive = new DifferentialDrive(left1, right1);
+  Joystick control = new Joystick(0);
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -94,16 +54,14 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto choices", m_chooser);
 
     // Spark Configs
-
     l2Config  // Left slave follows main.
           .follow(1);
     r1Config  // Right main inverted.
           .inverted(true);
     r2Config  // Right slave follows main.
           .follow(3);
-
-
   }
+
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
    * that you want ran during disabled, autonomous, teleoperated and test.
@@ -148,13 +106,23 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    left2.configure(l2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    right1.configure(r1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    right2.configure(r2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    ddDrive.arcadeDrive(-control.getY(), -control.getX());
-  
+    // ddDrive.arcadeDrive(-control.getRawAxis(1), -control.getRawAxis(4));    // Arcade Drive
+    /*
+    double left = control.getRawAxis(1);
+    double right = control.getRawAxis(5);
+
+    left1.set(left);
+    right1.set(right);
+    */  // Tank Drive
   }
 
   /** This function is called once when the robot is disabled. */
@@ -178,29 +146,7 @@ public class Robot extends TimedRobot {
   public void simulationInit() {}
 
   /** This function is called periodically whilst in simulation. */
-  public void Drivetrain() {
-    leftEncoder.setDistancePerPulse(2 * Math.PI * rMeters / 2048);
-    rightEncoder.setDistancePerPulse(2 * Math.PI * rMeters / 2048);
-    SmartDashboard.putData("Field", field2d);
-  }
-  public void simulationPeriodic() {
-    ddsim.setInputs(
-      left1.get() * RobotController.getInputVoltage(),
-      -(right1.get() * RobotController.getInputVoltage()));
-    ddsim.update(0.02);
-    leftEncSim.setDistance(ddsim.getLeftPositionMeters());
-    leftEncSim.setRate(ddsim.getLeftVelocityMetersPerSecond());
-    rightEncSim.setDistance(ddsim.getRightPositionMeters());
-    rightEncSim.setRate(ddsim.getRightVelocityMetersPerSecond());
-    gyroSim.setAngle(-ddsim.getHeading().getDegrees());
-  }
-  public void periodic() {
-    // Get the rotation of the robot from the gyro.
-    var gyroAngle = gyro.getRotation2d();
-    // Update the pose
-    odometry.update(gyroAngle,
-                  leftEncoder.getDistance(),
-                  rightEncoder.getDistance());
-    field2d.setRobotPose(odometry.getPoseMeters());
-  }
+  @Override
+  public void simulationPeriodic() {}
+
 }
