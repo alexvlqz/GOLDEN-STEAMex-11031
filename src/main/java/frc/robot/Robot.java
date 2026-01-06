@@ -115,10 +115,13 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    // ddDrive.arcadeDrive(-control.getRawAxis(1), -control.getRawAxis(4));    // Arcade Drive
+    double maxSpeed = 0.5;
+    
+    ddDrive.arcadeDrive(-control.getRawAxis(1)*maxSpeed, -control.getRawAxis(4)*maxSpeed);    // Arcade Drive
+    
     /*
-    double left = control.getRawAxis(1);
-    double right = control.getRawAxis(5);
+    double left = control.getRawAxis(1)*maxSpeed;
+    double right = control.getRawAxis(5)*maxSpeed;
 
     left1.set(left);
     right1.set(right);
