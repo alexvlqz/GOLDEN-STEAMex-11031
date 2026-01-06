@@ -58,7 +58,7 @@ public class Robot extends TimedRobot {
   double rbMeters = Units.inchesToMeters(16);
   double JKgMetersSquared = 5.5;
   double gearing = 8.45;
-  private DifferentialDrivetrainSim ddsim = new DifferentialDrivetrainSim(
+  DifferentialDrivetrainSim ddsim = new DifferentialDrivetrainSim(
     LinearSystemId.createDrivetrainVelocitySystem(
             motor,
             massKg,
@@ -73,8 +73,8 @@ public class Robot extends TimedRobot {
     null);
   EncoderSim leftEncSim = new EncoderSim(leftEncoder);
   EncoderSim rightEncSim = new EncoderSim(rightEncoder);
-  private AnalogGyroSim gyroSim = new AnalogGyroSim(gyro);
-  private Field2d field2d = new Field2d();
+  AnalogGyroSim gyroSim = new AnalogGyroSim(gyro);
+  Field2d field2d = new Field2d();
 
   // Differential Drive
   private final DifferentialDrive ddDrive = new DifferentialDrive(left1, right1);
